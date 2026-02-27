@@ -1,0 +1,14 @@
+.profile {
+  margin: 3rem auto;
+  text-align: center;
+}
+
+.profile h1 {
+  font-size: 5rem;
+}
+
+.profile p {
+  font-size: 1.2rem;
+  color: #666;
+  margin-top: 1rem;
+}
