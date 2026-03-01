@@ -1,6 +1,4 @@
-import { useState, useRef } from 'react';
-import { useAuth } from '../../store/auth-context';
-
+import { useState } from 'react';
 import classes from './AuthForm.module.css';
 
 const AuthForm = () => {
@@ -8,111 +6,96 @@ const AuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const emailInputRef = useRef();
-  const passwordInputRef = useRef();
-
-  const { login, setLoading, setError: setAuthError } = useAuth();
-
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
-    setError(null);
   };
 
   const submitHandler = async (event) => {
     event.preventDefault();
 
-    const enteredEmail = emailInputRef.current.value;
-    const enteredPassword = passwordInputRef.current.value;
-
-    // Basic validation
-    if (!enteredEmail || !enteredPassword) {
-      setError('Please enter both email and password.');
-      return;
-    }
-
-    if (enteredPassword.length < 6) {
-      setError('Password must be at least 6 characters long.');
-      return;
-    }
+    const enteredEmail = event.target.email.value;
+    const enteredPassword = event.target.password.value;
 
     setIsLoading(true);
     setError(null);
-    setLoading(true);
+
+    let url;
+
+    if (isLogin) {
+      url =
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
+    } else {
+      url =
+        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
+    }
 
     try {
-      const response = await fetch('/api/auth', {
-        method: isLogin ? 'POST' : 'PUT',
+      const response = await fetch(url, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           email: enteredEmail,
           password: enteredPassword,
+          returnSecureToken: true,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed');
+        throw new Error(data.error.message || 'Authentication failed!');
       }
 
-      if (isLogin) {
-        login('dummy-token-' + Date.now(), 'user-' + Date.now());
-      } else {
-        
-        setIsLogin(true);
-      }
+      console.log("ID TOKEN:", data.idToken);
 
-    } catch (error) {
-      setError(error.message || 'Something went wrong!');
-      setAuthError(error.message);
-    } finally {
-      setIsLoading(false);
-      setLoading(false);
+      localStorage.setItem('token', data.idToken);
+
+      alert("Authentication Successful!");
+
+    } catch (err) {
+      alert(err.message);
+      setError(err.message);
     }
+
+    setIsLoading(false);
   };
 
   return (
     <section className={classes.auth}>
       <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
-      {error && <p className={classes.error}>{error}</p>}
+
       <form onSubmit={submitHandler}>
         <div className={classes.control}>
           <label htmlFor='email'>Your Email</label>
-          <input 
-            type='email' 
-            id='email' 
-            required 
-            ref={emailInputRef}
-            disabled={isLoading}
-          />
+          <input type='email' id='email' required />
         </div>
+
         <div className={classes.control}>
           <label htmlFor='password'>Your Password</label>
-          <input
-            type='password'
-            id='password'
-            required
-            minLength='6'
-            ref={passwordInputRef}
-            disabled={isLoading}
-          />
+          <input type='password' id='password' required />
         </div>
+
         <div className={classes.actions}>
           {!isLoading && (
-            <button type='submit'>
+            <button>
               {isLogin ? 'Login' : 'Create Account'}
             </button>
           )}
-          {isLoading && <p>Authenticating...</p>}
+
+          {isLoading && <p>Sending request...</p>}
+
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+
           <button
             type='button'
             className={classes.toggle}
             onClick={switchAuthModeHandler}
-            disabled={isLoading}
           >
-            {isLogin ? 'Create new account' : 'Login with existing account'}
+            {isLogin
+              ? 'Create new account'
+              : 'Login with existing account'}
           </button>
         </div>
       </form>
