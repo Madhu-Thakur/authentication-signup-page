@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import classes from './AuthForm.module.css';
+import { useAuth } from '../../store/auth-context';
 
 const AuthForm = () => {
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -50,9 +52,15 @@ const AuthForm = () => {
 
       console.log("ID TOKEN:", data.idToken);
 
-      localStorage.setItem('token', data.idToken);
+      console.log("ID TOKEN:", data.idToken);
 
-      alert("Authentication Successful!");
+// store token
+localStorage.setItem('token', data.idToken);
+
+// VERY IMPORTANT (THIS FIXES YOUR TASK)
+login(data.idToken, data.localId);
+
+alert("Authentication Successful!");
 
     } catch (err) {
       alert(err.message);
