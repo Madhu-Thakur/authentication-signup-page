@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import classes from './AuthForm.module.css';
-import { useAuth } from '../../store/auth-context';
+import { useState } from "react";
+import classes from "./AuthForm.module.css";
+import { useAuth } from "../../store/auth-context";
 
 const AuthForm = () => {
   const { login } = useAuth();
@@ -24,18 +24,16 @@ const AuthForm = () => {
     let url;
 
     if (isLogin) {
-      url =
-        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
+      url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
     } else {
-      url =
-        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
+      url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
     }
 
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: enteredEmail,
@@ -47,21 +45,18 @@ const AuthForm = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error.message || 'Authentication failed!');
+        throw new Error(data.error.message || "Authentication failed!");
       }
 
       console.log("ID TOKEN:", data.idToken);
 
       console.log("ID TOKEN:", data.idToken);
 
-// store token
-localStorage.setItem('token', data.idToken);
+      localStorage.setItem("token", data.idToken);
 
-// VERY IMPORTANT (THIS FIXES YOUR TASK)
-login(data.idToken, data.localId);
+      login(data.idToken, data.localId);
 
-alert("Authentication Successful!");
-
+      alert("Authentication Successful!");
     } catch (err) {
       alert(err.message);
       setError(err.message);
@@ -72,38 +67,34 @@ alert("Authentication Successful!");
 
   return (
     <section className={classes.auth}>
-      <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
+      <h1>{isLogin ? "Login" : "Sign Up"}</h1>
 
       <form onSubmit={submitHandler}>
         <div className={classes.control}>
-          <label htmlFor='email'>Your Email</label>
-          <input type='email' id='email' required />
+          <label htmlFor="email">Your Email</label>
+          <input type="email" id="email" required />
         </div>
 
         <div className={classes.control}>
-          <label htmlFor='password'>Your Password</label>
-          <input type='password' id='password' required />
+          <label htmlFor="password">Your Password</label>
+          <input type="password" id="password" required />
         </div>
 
         <div className={classes.actions}>
           {!isLoading && (
-            <button>
-              {isLogin ? 'Login' : 'Create Account'}
-            </button>
+            <button>{isLogin ? "Login" : "Create Account"}</button>
           )}
 
           {isLoading && <p>Sending request...</p>}
 
-          {error && <p style={{ color: 'red' }}>{error}</p>}
+          {error && <p style={{ color: "red" }}>{error}</p>}
 
           <button
-            type='button'
+            type="button"
             className={classes.toggle}
             onClick={switchAuthModeHandler}
           >
-            {isLogin
-              ? 'Create new account'
-              : 'Login with existing account'}
+            {isLogin ? "Create new account" : "Login with existing account"}
           </button>
         </div>
       </form>
