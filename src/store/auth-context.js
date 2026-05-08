@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from 'react';
+import { createContext, useContext, useReducer, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -43,6 +43,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const [authState, dispatch] = useReducer(authReducer, initialState);
+  useEffect(() => {
+  checkAuthStatus();
+}, []);
 
   const login = (token, userId) => {
     localStorage.setItem('token', token);

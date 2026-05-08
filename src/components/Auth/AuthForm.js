@@ -50,13 +50,12 @@ const AuthForm = () => {
 
       console.log("ID TOKEN:", data.idToken);
 
-      console.log("ID TOKEN:", data.idToken);
-
       localStorage.setItem("token", data.idToken);
 
       login(data.idToken, data.localId);
 
       alert("Authentication Successful!");
+      window.location.replace("/profile");
     } catch (err) {
       alert(err.message);
       setError(err.message);

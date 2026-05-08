@@ -1,17 +1,10 @@
-import { useEffect } from 'react';
-import { useAuth } from '../../store/auth-context';
-
 import ProfileForm from './ProfileForm';
 import classes from './UserProfile.module.css';
 
 const UserProfile = () => {
-  const { checkAuthStatus, isLoggedIn } = useAuth();
+  const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
-
-  if (!isLoggedIn) {
+  if (!token) {
     return (
       <section className={classes.profile}>
         <h1>Access Denied</h1>
