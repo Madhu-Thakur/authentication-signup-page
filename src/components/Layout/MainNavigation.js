@@ -1,20 +1,27 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../store/auth-context';
+import { Link, useHistory } from 'react-router-dom';
 
 import classes from './MainNavigation.module.css';
 
 const MainNavigation = () => {
-  const { isLoggedIn, logout, isLoading } = useAuth();
+  const history = useHistory();
 
   const logoutHandler = () => {
-    logout();
+
+    localStorage.removeItem('token');
+
+    history.replace('/auth');
   };
+
+  const token = localStorage.getItem('token');
+
+  const isLoggedIn = !!token;
 
   return (
     <header className={classes.header}>
       <Link to='/'>
         <div className={classes.logo}>React Auth</div>
       </Link>
+
       <nav>
         <ul>
           {!isLoggedIn && (
@@ -22,15 +29,17 @@ const MainNavigation = () => {
               <Link to='/auth'>Login</Link>
             </li>
           )}
+
           {isLoggedIn && (
             <li>
               <Link to='/profile'>Profile</Link>
             </li>
           )}
+
           {isLoggedIn && (
             <li>
-              <button onClick={logoutHandler} disabled={isLoading}>
-                {isLoading ? 'Logging out...' : 'Logout'}
+              <button onClick={logoutHandler}>
+                Logout
               </button>
             </li>
           )}
