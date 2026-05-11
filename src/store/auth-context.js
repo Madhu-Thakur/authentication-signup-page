@@ -52,19 +52,40 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, []);
 
-  const login = (token, userId) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('userId', userId);
+  // const login = (token, userId) => {
+  //   localStorage.setItem('token', token);
+  //   localStorage.setItem('userId', userId);
 
-    dispatch({
-      type: 'LOGIN',
-      payload: { token, userId },
-    });
-  };
+  //   dispatch({
+  //     type: 'LOGIN',
+  //     payload: { token, userId },
+  //   });
+  // };
+
+const login = (token, userId) => {
+
+  const currentTime = new Date().getTime();
+
+  const expirationTime = currentTime + 5 * 60 * 1000;
+
+  localStorage.setItem('token', token);
+  localStorage.setItem('userId', userId);
+  localStorage.setItem('expirationTime', expirationTime);
+
+  dispatch({
+    type: 'LOGIN',
+    payload: { token, userId },
+  });
+
+  setTimeout(() => {
+    logout();
+  }, 5 * 60 * 1000);
+};
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
+    localStorage.removeItem('expirationTime');
 
     dispatch({ type: 'LOGOUT' });
   };
@@ -83,47 +104,60 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const checkAuthStatus = async () => {
-    const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');
+const checkAuthStatus = async () => {
 
-    if (!token) {
-      return;
-    }
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('userId');
+  const expirationTime = localStorage.getItem('expirationTime');
 
-    try {
-      const response = await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.REACT_APP_FIREBASE_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            idToken: token,
-          }),
-        }
-      );
+  const currentTime = new Date().getTime();
 
-      const data = await response.json();
+  if (currentTime > expirationTime) {
 
-      if (!response.ok) {
-        throw new Error(data.error.message || 'Authentication failed!');
+    logout();
+
+    return;
+  }
+
+  if (!token) {
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.REACT_APP_FIREBASE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idToken: token,
+        }),
       }
+    );
 
-      dispatch({
-        type: 'LOGIN',
-        payload: { token, userId },
-      });
+    const data = await response.json();
 
-    } catch (error) {
-
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-
-      dispatch({ type: 'LOGOUT' });
+    if (!response.ok) {
+      throw new Error(data.error.message || 'Authentication failed!');
     }
-  };
+
+    dispatch({
+      type: 'LOGIN',
+      payload: { token, userId },
+    });
+
+  } catch (error) {
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('expirationTime');
+
+    dispatch({ type: 'LOGOUT' });
+  }
+};
 
   const value = {
     ...authState,
